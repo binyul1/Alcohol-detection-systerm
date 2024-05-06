@@ -1,0 +1,61 @@
+#include <ESP8266WiFi.h>
+#include <BlynkSimpleEsp8266.h>
+
+#define BLYNK_TEMPLATE_ID "TMPL3bhQ0eInr" 
+#define BLYNK_TEMPLATE_NAME "Alcohol Detection" 
+#define BLYNK_AUTH_TOKEN "eEZgv-EfPApq7-7r8qhgxKg80099QSSm"
+
+
+char ssid[] = "Bharath";
+char pass[] = "12345677";
+
+BlynkTimer timer; // Announcing the timer
+
+const int analogInPin = A0;     // ESP8266 Analog Pin ADC0 = A0
+int sensorValue = 0;   // value read from the pot
+
+#define ENA D2
+#define BUZZER D5
+
+#define IN1 D3
+#define IN2 D4
+#define Relay D0
+
+
+void setup() 
+{
+  Serial.begin(9600);
+  Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
+  pinMode(ENA, OUTPUT);
+  pinMode(IN1, OUTPUT);
+  pinMode(IN2, OUTPUT);
+  pinMode(Relay, OUTPUT);
+  pinMode(BUZZER, OUTPUT);
+  timer.setInterval(1000L, sensorDataSend); //timer will run every sec 
+}
+
+void sensorDataSend()
+{
+  sensorValue = analogRead(analogInPin);// reading sensor from analog pin
+  digitalWrite(Relay,LOW);
+  digitalWrite(ENA, HIGH); // possible range 0~255
+  digitalWrite(IN1, HIGH);
+  digitalWrite(IN2, LOW);
+  if(sensorValue > 250){
+    digitalWrite(Relay,HIGH);
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, LOW);
+    digitalWrite(BUZZER, HIGH);
+    delay(1000);
+    
+  }
+  Blynk.virtualWrite(V0, sensorValue);      // sending sensor value to Blynk app
+  Serial.print("Alcohol value = ");
+  Serial.println(sensorValue);
+  digitalWrite(BUZZER, LOW);
+}
+void loop() 
+{
+Blynk.run();
+timer.run();
+}
